@@ -5,15 +5,22 @@
 
 using namespace std;
 
+mutex consoleMutex;
+
 // Example
 void writeFile(int id) {
-    ofstream outFile("output.txt", ios_base::app);
-    if (outFile.is_open()) {
-        outFile << "Task " << id << " is being processed in thread "
-            << this_thread::get_id() << endl;
-        outFile.close();
-    } 
-    this_thread::sleep_for(chrono::seconds(1));
+    static mutex fileMutex;
+
+    {
+        lock_guard<mutex> lock(fileMutex);
+        ofstream outFile("output.txt", ios_base::app);
+
+        if (outFile.is_open()) {
+            outFile << "Task " << id << " is being processed in thread "
+                << this_thread::get_id() << endl;
+            outFile.close();
+        }
+    }
 }
 
 int main() {
@@ -22,7 +29,10 @@ int main() {
         numThreads = 2;
     }
 
-    cout << "Number of threads: " << numThreads << endl;
+    {
+        lock_guard<mutex> lock(consoleMutex);
+        cout << "On your computer the number of threads = " << numThreads << endl;
+    }
 
     ThreadPool threadPool(numThreads);
 
@@ -32,7 +42,10 @@ int main() {
         });
     }
 
-    this_thread::sleep_for(chrono::seconds(10));
+    {
+        lock_guard<mutex> lock(consoleMutex);
+        cout << "Tasks and the threads in which they were executed are recorded in the file 'output.txt'" << endl;
+    }
 
     return 0;
 }

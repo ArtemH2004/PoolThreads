@@ -14,20 +14,21 @@ ThreadPool::~ThreadPool() {
     stop = true;
     condition.notify_all();
     for (thread& worker : workers) {
-        worker.join();
+       if (worker.joinable()) worker.join();
     }
 }
 
 void ThreadPool::enqueue(const function<void()>& task) {
     {
-        unique_lock<mutex> lock(queueMutex);
+        lock_guard<mutex> lock(queueMutex);
         tasks.push(task);
+        tasksCount++;
     }
     condition.notify_one();
 }
 
 void ThreadPool::worker() {
-    while (true) {
+    while (stop) {
         function<void()> task;
         {
             unique_lock<mutex> lock(queueMutex);
@@ -35,7 +36,14 @@ void ThreadPool::worker() {
             if (stop && tasks.empty()) return;
             task = move(tasks.front());
             tasks.pop();
+            tasksCount--;
         }
         task();
+        printStatus();
     }
+}
+
+void ThreadPool::printStatus() const {
+    lock_guard<mutex> lock(queueMutex);
+    cout << "Tasks remaining in the queue: " << tasksCount << endl;
 }
