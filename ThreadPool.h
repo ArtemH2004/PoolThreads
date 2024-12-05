@@ -1,5 +1,4 @@
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#pragma once
 
 #include <thread>
 #include <vector>
@@ -18,14 +17,14 @@ public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
     void enqueue(const function<void()>& task);
+    void printStatus() const;
 
 private:
     void worker();
     vector<thread> workers;
     queue<function<void()>> tasks;
-    mutex queueMutex;
+    mutable mutex queueMutex;
     condition_variable condition;
     atomic<bool> stop;
+    size_t tasksCount = 0;
 };
-
-#endif // THREADPOOL_H
