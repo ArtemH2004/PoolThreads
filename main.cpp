@@ -6,20 +6,17 @@
 using namespace std;
 
 mutex consoleMutex;
+mutex fileMutex;
 
 // Example
 void writeFile(int id) {
-    static mutex fileMutex;
-
-    {
-        lock_guard<mutex> lock(fileMutex);
-        ofstream outFile("output.txt", ios_base::app);
-
-        if (outFile.is_open()) {
-            outFile << "Task " << id << " is being processed in thread "
-                << this_thread::get_id() << endl;
-            outFile.close();
-        }
+    lock_guard<mutex> lock(fileMutex);
+    ofstream outFile("output.txt", ios_base::app);
+    
+    if (outFile.is_open()) {
+        outFile << "Task " << id << " is being processed in thread "
+            << this_thread::get_id() << endl;
+        outFile.close();
     }
 }
 
@@ -29,23 +26,22 @@ int main() {
         numThreads = 2;
     }
 
-    {
-        lock_guard<mutex> lock(consoleMutex);
-        cout << "On your computer the number of threads = " << numThreads << endl;
-    }
-
-    ThreadPool threadPool(numThreads);
-
-    for (int i = 0; i < 10; ++i) {
-        threadPool.enqueue([i] {
-            writeFile(i);
-        });
-    }
+    cout << "On your computer the number of threads = " << numThreads << endl;
 
     {
-        lock_guard<mutex> lock(consoleMutex);
-        cout << "Tasks and the threads in which they were executed are recorded in the file 'output.txt'" << endl;
+        ThreadPool threadPool(numThreads);
+
+        for (int i = 0; i < 100; ++i) {
+            threadPool.enqueue([i] {
+                writeFile(i);
+                });
+        }
+
+        while (!threadPool.isEmpty());
     }
+     
+    cout << "Queued tasks are complete" << endl;
+    cout << "Tasks and the threads in which they were executed are recorded in the file 'output.txt'" << endl;
 
     return 0;
 }

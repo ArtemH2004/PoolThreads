@@ -1,14 +1,19 @@
-CXX = g++
-CXXFLAGS = -std=c++11 -pthread
+CC=g++
+CFLAGS=-c -Wall
+LDFLAGS=
+SOURCES=main.cpp ThreadPool.cpp
+OBJECTS=$(SOURCES:.cpp=.o)
+EXECUTABLE=PoolThreadsExecutable
 
-TARGET = threadpool_example
+all: $(SOURCES) $(EXECUTABLE)
 
-SRCS = main.cpp ThreadPool.cpp
+clear:
+ rm -f ThreadPool *.o
 
-all: $(TARGET)
+$(EXECUTABLE): $(OBJECTS)
+ $(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-$(TARGET): $(SRCS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS)
+.cpp.o:
+ $(CC) $(CFLAGS) $< -o $@
 
-clean:
-	rm -f $(TARGET) output.txt
+.PHONY: all clear

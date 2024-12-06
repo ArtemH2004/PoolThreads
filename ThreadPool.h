@@ -18,6 +18,7 @@ public:
     ~ThreadPool();
     void enqueue(const function<void()>& task);
     void printStatus() const;
+    bool isEmpty();
 
 private:
     void worker();
