@@ -8,12 +8,12 @@ EXECUTABLE=PoolThreadsExecutable
 all: $(SOURCES) $(EXECUTABLE)
 
 clear:
- rm -f ThreadPool *.o
+	rm -f ThreadPool *.o
 
 $(EXECUTABLE): $(OBJECTS)
- $(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 .cpp.o:
- $(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
-.PHONY: all clear
+.PHONY: all clean
