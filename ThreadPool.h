@@ -16,6 +16,10 @@ class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator = (const ThreadPool&) = delete; 
+    ThreadPool(ThreadPool&& other) = delete;
+    ThreadPool& operator = (ThreadPool&& other) = delete;
     void enqueue(const function<void()>& task);
     void printStatus() const;
     bool isEmpty();
