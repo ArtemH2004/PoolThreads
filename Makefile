@@ -5,15 +5,15 @@ SOURCES=main.cpp ThreadPool.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=PoolThreadsExecutable
 
-all: $(SOURCES) $(EXECUTABLE)
+.PHONY: all clean
 
-clear:
-	rm -f ThreadPool *.o
+all: $(EXECUTABLE)
+
+clean:
+	rm -f $(OBJECTS) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
-
-.PHONY: all clean
