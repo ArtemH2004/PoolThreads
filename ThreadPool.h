@@ -1,35 +1,50 @@
 #pragma once
 
-#include <thread>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include <queue>
 #include <functional>
-#include <mutex>
 #include <condition_variable>
+#include <atomic>
 #include <iostream>
 #include <fstream>
-#include <atomic>
+#include <cassert>
+
+#if defined (_WIN32) || defined (_WIN64)
+#include <Windows.h>
+#else
+#include <pthread.h>
+#endif
 
 using namespace std;
+
+using func = std::function<void(int)>;
 
 class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
-    ThreadPool(const ThreadPool&) = delete;
-    ThreadPool& operator = (const ThreadPool&) = delete; 
-    ThreadPool(ThreadPool&& other) = delete;
-    ThreadPool& operator = (ThreadPool&& other) = delete;
+
     void enqueue(const function<void()>& task);
-    void printStatus() const;
     bool isEmpty();
+    unsigned int getThreadCount();
 
 private:
     void worker();
-    vector<thread> workers;
+    static unsigned int workerWrapper(void* arg); 
+    static void* workerWrapperPosix(void* arg);
+
+    vector<void*> workers;
     queue<function<void()>> tasks;
     mutable mutex queueMutex;
     condition_variable condition;
     atomic<bool> stop;
     size_t tasksCount = 0;
+
+#if defined (_WIN32) || defined (_WIN64)
+    static unsigned int getCurrentThreadId();
+#else
+    static int getCurrentThreadId();
+#endif
 };
