@@ -9,11 +9,20 @@ ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
 #if defined (_WIN32) || defined (_WIN64)
         unsigned int threadID;
         HANDLE thread = (HANDLE)_beginthreadex(NULL, 0, &workerWrapper, this, 0, &threadID);
-        workers.push_back(thread);
+        if (thread == 0) {
+            cerr << "Failed to create thread: Error Code " << GetLastError() << endl;   
+        }
+        else {
+            workers.push_back(thread);
+        }
 #else
         pthread_t thread;
-        pthread_create(&thread, nullptr, &workerWrapperPosix, this);
-        workers.push_back((void*)thread);
+        if (pthread_create(&thread, nullptr, &workerWrapperPosix, this) != 0) {
+            cerr << "Failed to create thread: Error Code " << strerror(errno) << endl;
+        }
+        else {
+            workers.push_back((void*)thread);
+        }
 #endif
     }
     cout << "ThreadPool started with " << numThreads << " threads." << endl;
@@ -70,7 +79,9 @@ unsigned int ThreadPool::getThreadCount() {
 #if defined (_WIN32) || defined (_WIN64)
 unsigned int __stdcall ThreadPool::workerWrapper(void* arg) {
     ThreadPool* pool = static_cast<ThreadPool*>(arg);
-    pool->worker();
+    if (pool) { 
+        pool->worker();
+    }
     return 0;
 }
 
@@ -80,7 +91,9 @@ unsigned int ThreadPool::getCurrentThreadId() {
 #else
 void* ThreadPool::workerWrapperPosix(void* arg) {
     ThreadPool* pool = static_cast<ThreadPool*>(arg);
-    pool->worker();
+    if (pool) {
+        pool->worker();
+    }    
     return nullptr;
 }
 

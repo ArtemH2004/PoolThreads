@@ -13,8 +13,10 @@
 
 #if defined (_WIN32) || defined (_WIN64)
 #include <Windows.h>
-#else
+#elif defined(__linux__)
 #include <pthread.h>
+#else
+#error "ThreadPool is only supported on Windows and Linux"
 #endif
 
 using namespace std;
